@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Vida Económica de un Equipo (CAE) — {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}Calcula la vida económica de un equipo por el método del Costo Anual Equivalente: tanteo de n y confirmación con la tabla de CAE.{% endblock %}
+
+{% block contenido %}
+<section class="reemplazo-hero py-4">
+  <div class="container text-white">
+    <a href="{% url 'reemplazo_equipos:inicio' %}" class="text-white-50 small"><i class="bi bi-arrow-left"></i> Reemplazo de Equipos</a>
+    <h1 class="h3 mt-2 mb-0"><i class="bi bi-graph-down-arrow"></i> Vida Económica de un Equipo</h1>
+  </div>
+</section>
+
+<div class="container py-4">
+  {% if error_calculo %}<div class="alert alert-danger">{{ error_calculo }}</div>{% endif %}
+
+  <div class="row g-4">
+    <!-- Columna de conceptos + formulario -->
+    <div class="col-lg-5">
+      {% include "partials/_formula_card.html" with titulo="Paso 1 — Fórmula de tanteo (aproximada)" formula="n ≈ (P·i)/g + 1/i − 1 / [ i·(1+i)ⁿ ]" explicacion="Como n aparece en ambos lados de la ecuación, no se puede despejar directamente: se prueba (tantea) un rango de valores de n y se busca aquel donde el 'n tanteado' es casi igual al 'n resultante' de la fórmula." %}
+
+      {% include "partials/_formula_card.html" with titulo="Paso 2 — CAE exacto (confirmación)" formula="CAE = P·FRC(i,n) + A + g·[ 1/i − n/((1+i)ⁿ−1) ]" explicacion="El tanteo solo da un punto de partida (usa una aproximación matemática). Para confirmar el verdadero óptimo, se calcula el CAE exacto en los años cercanos al n tanteado y se elige el de menor costo." %}
+
+      <form method="post" class="card shadow-sm p-3 p-md-4 border-0">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label small fw-semibold">{{ form.P.label }}</label>
+            {{ form.P }}
+            <div class="form-text">{{ form.P.help_text }}</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">{{ form.A.label }}</label>
+            {{ form.A }}
+            <div class="form-text">{{ form.A.help_text }}</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">{{ form.g.label }}</label>
+            {{ form.g }}
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">{{ form.i.label }}</label>
+            {{ form.i }}
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">{{ form.n_inicial_tanteo.label }}</label>
+            {{ form.n_inicial_tanteo }}
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">{{ form.n_final_tanteo.label }}</label>
+            {{ form.n_final_tanteo }}
+          </div>
+        </div>
+        {% if form.non_field_errors %}<div class="text-danger small mt-2">{{ form.non_field_errors }}</div>{% endif %}
+        <button type="submit" class="btn btn-danger w-100 mt-3"><i class="bi bi-calculator"></i> Calcular vida económica</button>
+      </form>
+    </div>
+
+    <!-- Columna de resultados -->
+    <div class="col-lg-7">
+      {% if resultado %}
+
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="paso-numero">1</span>
+          <h5 class="mb-0">Tanteo de n*</h5>
+        </div>
+        <div class="table-responsive tabla-scroll mb-2">
+          <table class="table table-sm table-striped align-middle">
+            <thead class="table-dark"><tr><th>n tanteado</th><th>n resultante</th><th>Diferencia</th></tr></thead>
+            <tbody>
+              {% for f in resultado.tabla_tanteo %}
+              <tr class="{% if f.n_tanteado == resultado.n_tanteado_elegido %}fila-optima{% endif %}">
+                <td>{{ f.n_tanteado }}</td>
+                <td>{{ f.n_resultante|floatformat:3 }}</td>
+                <td>{{ f.diferencia|floatformat:3 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% include "partials/_semaforo.html" with semaforo="neutro" texto=resultado.interpretacion_tanteo %}
+
+        <div class="d-flex align-items-center gap-3 mt-4 mb-3">
+          <span class="paso-numero">2</span>
+          <h5 class="mb-0">Confirmación con CAE exacto</h5>
+        </div>
+        <div class="table-responsive mb-2">
+          <table class="table table-sm table-bordered align-middle">
+            <thead class="table-dark"><tr><th>Años de uso (n)</th><th>CAE</th></tr></thead>
+            <tbody>
+              {% for f in resultado.tabla_cae %}
+              <tr class="{% if f.es_minimo %}fila-optima{% endif %}">
+                <td>{{ f.n }}</td>
+                <td>${{ f.cae|floatformat:0 }} {% if f.es_minimo %}<i class="bi bi-star-fill text-warning"></i>{% endif %}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card text-center p-3 mb-3 border-warning">
+          <div class="small text-muted">Vida económica óptima</div>
+          <div class="fs-2 fw-bold text-danger">{{ resultado.n_optimo }} años</div>
+          <div class="small text-muted">CAE mínimo: ${{ resultado.cae_minimo|floatformat:0 }}</div>
+        </div>
+        {% include "partials/_semaforo.html" with semaforo="positivo" texto=resultado.interpretacion_final %}
+
+        <div class="card p-3 mt-4 border-0 shadow-sm">
+          <h6 class="text-uppercase text-muted small fw-bold">Curva del Costo Anual Equivalente (forma de "U")</h6>
+          {{ svg_curva_cae|safe }}
+          <p class="text-muted small mt-2 mb-0">
+            <span class="d-inline-block" style="width:10px;height:10px;background:#f59e0b;border-radius:50%;"></span>
+            El punto dorado marca el año con menor CAE: la vida económica óptima del equipo.
+          </p>
+        </div>
+
+      {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-arrow-left-circle fs-1"></i>
+          <p class="mt-2">Completa el formulario con los datos del equipo (P, A, g, i)<br>para ver el tanteo y la tabla de CAE.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

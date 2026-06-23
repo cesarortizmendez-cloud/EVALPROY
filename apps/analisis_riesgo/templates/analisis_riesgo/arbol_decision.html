@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Árbol de Decisión — {{ SITE_NAME }}{% endblock %}
+{% block contenido %}
+<div class="container py-4">
+  <a href="{% url 'analisis_riesgo:inicio' %}" class="btn btn-sm btn-outline-secondary mb-3">&larr; Volver a Análisis de Riesgo</a>
+  <h1 class="h3 mb-1"><i class="bi bi-diagram-3 text-primary"></i> Árbol de Decisión</h1>
+  <p class="text-muted">Caso clásico de 2 niveles: decidir si invertir, con un resultado incierto de éxito/fracaso.</p>
+
+  {% include "partials/_formula_card.html" with titulo="Resolución por 'rollback'" formula="Valor(nodo azar) = Σ pᵢ × Flujoᵢ      Valor(nodo decisión) = máx(ramas)" explicacion="El árbol se resuelve de atrás hacia adelante: primero se calcula el valor esperado de los nodos de azar (al final del árbol), y luego se elige, en cada nodo de decisión, la rama con mayor valor." %}
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <form method="post" class="card shadow-sm p-3 border-0">
+        {% csrf_token %}
+        <label class="form-label small fw-semibold">{{ form.costo_invertir.label }}</label>
+        {{ form.costo_invertir }}
+        <label class="form-label small fw-semibold mt-2">{{ form.prob_exito.label }}</label>
+        {{ form.prob_exito }}
+        <div class="form-text">{{ form.prob_exito.help_text }}</div>
+        <label class="form-label small fw-semibold mt-2">{{ form.flujo_exito.label }}</label>
+        {{ form.flujo_exito }}
+        <label class="form-label small fw-semibold mt-2">{{ form.flujo_fracaso.label }}</label>
+        {{ form.flujo_fracaso }}
+        <label class="form-label small fw-semibold mt-2">{{ form.flujo_no_invertir.label }}</label>
+        {{ form.flujo_no_invertir }}
+        <button type="submit" class="btn btn-primary w-100 mt-3">Resolver árbol</button>
+      </form>
+    </div>
+    <div class="col-lg-7">
+      {% if resultado %}
+        <div class="row g-2 mb-3">
+          <div class="col-6"><div class="card text-center p-2"><div class="small text-muted">Valor de Invertir</div><div class="fw-bold">${{ resultado.valor_invertir|floatformat:0 }}</div></div></div>
+          <div class="col-6"><div class="card text-center p-2"><div class="small text-muted">Valor de No Invertir</div><div class="fw-bold">${{ resultado.valor_no_invertir|floatformat:0 }}</div></div></div>
+        </div>
+        <div class="card text-center p-3 mb-3 {% if resultado.mejor_decision == 'Invertir' %}border-success{% else %}border-danger{% endif %}">
+          <div class="small text-muted">Decisión óptima</div>
+          <div class="fs-3 fw-bold">{{ resultado.mejor_decision }}</div>
+        </div>
+        {% include "partials/_semaforo.html" with semaforo="neutro" texto=resultado.interpretacion %}
+      {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-arrow-left-circle fs-1"></i>
+          <p class="mt-2">Completa el formulario para resolver el árbol de decisión.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

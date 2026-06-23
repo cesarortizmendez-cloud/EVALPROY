@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Constructor de Flujo de Caja — {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}Construye el flujo de caja de un proyecto de inversión paso a paso: ingresos, costos, depreciación, impuestos y capital de trabajo, con cálculo automático de VAN y TIR.{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+  <h1 class="h3 mb-1"><i class="bi bi-cash-coin text-primary"></i> Constructor de Flujo de Caja</h1>
+  <p class="text-muted">Arma el flujo de caja completo de tu proyecto y obtén automáticamente el VAN, la TIR y el Payback.</p>
+  {% if error_calculo %}<div class="alert alert-danger">{{ error_calculo }}</div>{% endif %}
+
+  {% include "partials/_formula_card.html" with titulo="Estructura del flujo de caja" formula="Flujo = (Ingresos − Costos − Depreciación) × (1 − t) + Depreciación ± Inversiones ± Capital de trabajo" explicacion="La depreciación reduce la utilidad imponible (y por tanto el impuesto a pagar) pero NO es una salida real de caja, por eso se resta para calcular el impuesto y luego se vuelve a sumar en el flujo de caja." %}
+
+  <form method="post" class="card shadow-sm p-3 p-md-4 border-0 mb-4">
+    {% csrf_token %}
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">{{ form.horizonte_anios.label }}</label>
+        {{ form.horizonte_anios }}
+        <div class="form-text">{{ form.horizonte_anios.help_text }}</div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">{{ form.inversion_inicial.label }}</label>
+        {{ form.inversion_inicial }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">{{ form.capital_trabajo.label }}</label>
+        {{ form.capital_trabajo }}
+        <div class="form-text">{{ form.capital_trabajo.help_text }}</div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">{{ form.valor_residual_activos.label }}</label>
+        {{ form.valor_residual_activos }}
+        <div class="form-text">{{ form.valor_residual_activos.help_text }}</div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">{{ form.ingresos_anuales.label }}</label>
+        {{ form.ingresos_anuales }}
+        <div class="form-text">{{ form.ingresos_anuales.help_text }}</div>
+        {% for e in form.ingresos_anuales.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">{{ form.costos_anuales.label }}</label>
+        {{ form.costos_anuales }}
+        <div class="form-text">{{ form.costos_anuales.help_text }}</div>
+        {% for e in form.costos_anuales.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">{{ form.metodo_depreciacion.label }}</label>
+        {{ form.metodo_depreciacion }}
+        <div class="form-text">{{ form.metodo_depreciacion.help_text }}</div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">{{ form.valor_residual_contable.label }}</label>
+        {{ form.valor_residual_contable }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">{{ form.tasa_impuesto.label }}</label>
+        {{ form.tasa_impuesto }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">{{ form.tasa_descuento.label }}</label>
+        {{ form.tasa_descuento }}
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3"><i class="bi bi-calculator"></i> Construir flujo y calcular</button>
+  </form>
+
+  {% if filas %}
+    <div class="table-responsive mb-4">
+      <table class="table table-sm table-bordered align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>Año</th><th>Ingresos</th><th>Costos</th><th>Depreciación</th>
+            <th>Utilidad antes imp.</th><th>Impuesto</th><th>Utilidad neta</th><th>Flujo del período</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="table-secondary">
+            <td>0</td><td colspan="6" class="text-muted">Inversión inicial + capital de trabajo</td>
+            <td class="fw-bold">${{ flujo_neto.0|floatformat:0 }}</td>
+          </tr>
+          {% for f in filas %}
+          <tr>
+            <td>{{ f.anio }}</td>
+            <td>${{ f.ingreso|floatformat:0 }}</td>
+            <td>${{ f.costo|floatformat:0 }}</td>
+            <td>${{ f.depreciacion|floatformat:0 }}</td>
+            <td>${{ f.utilidad_antes_imp|floatformat:0 }}</td>
+            <td>${{ f.impuesto|floatformat:0 }}</td>
+            <td>${{ f.utilidad_neta|floatformat:0 }}</td>
+            <td class="fw-bold">${{ f.flujo_periodo|floatformat:0 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-md-4">
+        <div class="card text-center p-2"><div class="small text-muted">VAN</div><div class="fs-5 fw-bold">${{ van.valor|floatformat:0 }}</div></div>
+      </div>
+      <div class="col-6 col-md-4">
+        <div class="card text-center p-2"><div class="small text-muted">TIR</div><div class="fs-5 fw-bold">{% if tir.valor_pct %}{{ tir.valor_pct|floatformat:2 }}%{% else %}N/A{% endif %}</div></div>
+      </div>
+      <div class="col-6 col-md-4">
+        <div class="card text-center p-2"><div class="small text-muted">Payback</div><div class="fs-5 fw-bold">{% if payback.periodo %}{{ payback.periodo|floatformat:2 }} años{% else %}Nunca{% endif %}</div></div>
+      </div>
+    </div>
+
+    {% include "partials/_semaforo.html" with semaforo=van.semaforo texto=van.interpretacion %}
+    <div class="mt-2">{% include "partials/_semaforo.html" with semaforo=tir.semaforo texto=tir.interpretacion %}</div>
+
+    <div class="card p-3 mt-4 border-0 shadow-sm">
+      <h6 class="text-uppercase text-muted small fw-bold">Flujo de caja del proyecto</h6>
+      {{ svg_flujo|safe }}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Análisis de Sensibilidad — {{ SITE_NAME }}{% endblock %}
+{% block contenido %}
+<div class="container py-4">
+  <a href="{% url 'analisis_riesgo:inicio' %}" class="btn btn-sm btn-outline-secondary mb-3">&larr; Volver a Análisis de Riesgo</a>
+  <h1 class="h3 mb-1"><i class="bi bi-sliders text-primary"></i> Análisis de Sensibilidad</h1>
+  {% if error_calculo %}<div class="alert alert-danger">{{ error_calculo }}</div>{% endif %}
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      {% include "partials/_formula_card.html" with titulo="Sensibilidad del VAN" formula="VAN(variación) recalculado con Fₜ' = Fₜ × (1 + %variación)" explicacion="Se recalcula el VAN variando los flujos futuros entre -20% y +20% (sin tocar la inversión inicial). Cuanto más se mueva el VAN, más riesgoso es el proyecto frente a esa variable." %}
+      <form method="post" class="card shadow-sm p-3 border-0">
+        {% csrf_token %}
+        <label class="form-label small fw-semibold">{{ form.flujos_base.label }}</label>
+        {{ form.flujos_base }}
+        <div class="form-text mb-2">{{ form.flujos_base.help_text }}</div>
+        {% for e in form.flujos_base.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        <label class="form-label small fw-semibold">{{ form.tasa_descuento.label }}</label>
+        {{ form.tasa_descuento }}
+        <button type="submit" class="btn btn-primary w-100 mt-3">Calcular sensibilidad</button>
+      </form>
+    </div>
+    <div class="col-lg-7">
+      {% if puntos %}
+        <div class="row g-2 mb-3">
+          <div class="col-6"><div class="card text-center p-2"><div class="small text-muted">VAN base</div><div class="fw-bold">${{ van_base|floatformat:0 }}</div></div></div>
+          <div class="col-6"><div class="card text-center p-2"><div class="small text-muted">Rango de variación del VAN</div><div class="fw-bold">${{ rango|floatformat:0 }}</div></div></div>
+        </div>
+        <div class="card p-3 border-0 shadow-sm mb-3">
+          {{ svg_sensibilidad|safe }}
+        </div>
+        {% include "partials/_semaforo.html" with semaforo="neutro" texto="Mientras más empinada sea la curva, más sensible (riesgoso) es el proyecto frente a variaciones de los flujos futuros. Si el VAN se vuelve negativo dentro del rango -20%/+20%, el proyecto tiene poco margen de seguridad." %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

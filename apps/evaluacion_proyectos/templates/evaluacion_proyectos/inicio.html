@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Calculadora de VAN, TIR y Payback — {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}Calcula el VAN, la TIR, el Payback y el IVAN de un proyecto de inversión online y gratis, con explicación de fórmulas e interpretación automática del resultado.{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1"><i class="bi bi-graph-up-arrow text-primary"></i> VAN, TIR y Payback</h1>
+      <p class="text-muted mb-0">Evalúa si un proyecto de inversión crea o destruye valor.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'evaluacion_proyectos:fisher' %}" class="btn btn-outline-dark">
+        <i class="bi bi-arrows-collapse"></i> Comparar 2 proyectos (Tasa de Fisher)
+      </a>
+      <a href="{% url 'evaluacion_proyectos:no_periodico' %}" class="btn btn-outline-dark">
+        <i class="bi bi-calendar3-range"></i> Flujos no periódicos (VAN.NO.PER)
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Columna izquierda: conceptos + formulario -->
+    <div class="col-lg-5">
+
+      {% include "partials/_formula_card.html" with titulo="VAN — Valor Actual Neto" formula="VAN = Σ ( Fₜ / (1+r)ᵗ )  para t = 0..n" explicacion="Trae todos los flujos futuros (F) a valor de hoy usando la tasa de descuento r, y los suma. Si el resultado es positivo, el proyecto genera más valor del que cuesta financiarlo." %}
+
+      {% include "partials/_formula_card.html" with titulo="TIR — Tasa Interna de Retorno" formula="VAN(TIR) = 0" explicacion="Es la tasa de descuento que hace que el VAN sea exactamente cero: la rentabilidad 'propia' del proyecto. Se compara contra tu tasa de corte (costo de oportunidad) para decidir." %}
+
+      {% include "partials/_formula_card.html" with titulo="Payback (período de recuperación)" formula="Año en que el flujo acumulado pasa de negativo a positivo" explicacion="Cuántos años tarda el proyecto en recuperar la inversión inicial. No descuenta los flujos ni considera lo que pasa después, así que se usa solo como referencia complementaria." %}
+
+      <form method="post" class="card shadow-sm p-3 p-md-4 border-0">
+        {% csrf_token %}
+        {% if error_calculo %}
+          <div class="alert alert-danger">{{ error_calculo }}</div>
+        {% endif %}
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">{{ form.flujos.label }}</label>
+          {{ form.flujos }}
+          <div class="form-text">{{ form.flujos.help_text }}</div>
+          {% for e in form.flujos.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">{{ form.tasa_descuento.label }}</label>
+          {{ form.tasa_descuento }}
+          <div class="form-text">{{ form.tasa_descuento.help_text }}</div>
+          {% for e in form.tasa_descuento.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">{{ form.tasa_corte_tir.label }}</label>
+          {{ form.tasa_corte_tir }}
+          <div class="form-text">{{ form.tasa_corte_tir.help_text }}</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">{{ form.periodo_maximo_payback.label }}</label>
+          {{ form.periodo_maximo_payback }}
+          <div class="form-text">{{ form.periodo_maximo_payback.help_text }}</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="bi bi-calculator"></i> Calcular
+        </button>
+      </form>
+    </div>
+
+    <!-- Columna derecha: resultados -->
+    <div class="col-lg-7">
+      {% if resultados %}
+
+        <div class="row g-3 mb-3">
+          <div class="col-6 col-md-3">
+            <div class="card text-center p-2 h-100">
+              <div class="small text-muted">VAN</div>
+              <div class="fs-5 fw-bold">${{ resultados.van.valor|floatformat:0 }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card text-center p-2 h-100">
+              <div class="small text-muted">TIR</div>
+              <div class="fs-5 fw-bold">
+                {% if resultados.tir.valor_pct %}{{ resultados.tir.valor_pct|floatformat:2 }}%{% else %}N/A{% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card text-center p-2 h-100">
+              <div class="small text-muted">Payback</div>
+              <div class="fs-5 fw-bold">
+                {% if resultados.payback.periodo %}{{ resultados.payback.periodo|floatformat:2 }} años{% else %}Nunca{% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card text-center p-2 h-100">
+              <div class="small text-muted">IVAN</div>
+              <div class="fs-5 fw-bold">
+                {% if resultados.ivan_valor != None %}{{ resultados.ivan_valor|floatformat:3 }}{% else %}N/A{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h6 class="text-uppercase text-muted small fw-bold">Interpretación del VAN</h6>
+        {% include "partials/_semaforo.html" with semaforo=resultados.van.semaforo texto=resultados.van.interpretacion %}
+
+        <h6 class="text-uppercase text-muted small fw-bold mt-3">Interpretación de la TIR</h6>
+        {% include "partials/_semaforo.html" with semaforo=resultados.tir.semaforo texto=resultados.tir.interpretacion %}
+
+        <h6 class="text-uppercase text-muted small fw-bold mt-3">Interpretación del Payback</h6>
+        {% include "partials/_semaforo.html" with semaforo=resultados.payback.semaforo texto=resultados.payback.interpretacion %}
+
+        {% if resultados.ivan_interpretacion %}
+        <h6 class="text-uppercase text-muted small fw-bold mt-3">Interpretación del IVAN</h6>
+        {% include "partials/_semaforo.html" with semaforo="neutro" texto=resultados.ivan_interpretacion %}
+        {% endif %}
+
+        <div class="card p-3 mt-4 border-0 shadow-sm">
+          <h6 class="text-uppercase text-muted small fw-bold">Flujo de caja y flujo acumulado</h6>
+          {{ resultados.svg_flujo|safe }}
+        </div>
+
+      {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-arrow-left-circle fs-1"></i>
+          <p class="mt-2">Completa el formulario para ver el VAN, la TIR, el Payback<br>y su interpretación aquí.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

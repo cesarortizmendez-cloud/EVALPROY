@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Reemplazo de Equipos — {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}Calculadoras de vida económica (CAE) y momento óptimo de reemplazo de equipos, basadas en el método costo-eficiencia de Gutiérrez.{% endblock %}
+
+{% block contenido %}
+<section class="reemplazo-hero py-5">
+  <div class="container text-center text-white">
+    <h1 class="display-6 fw-bold mb-2"><i class="bi bi-arrow-repeat"></i> Reemplazo de Equipos</h1>
+    <p class="lead mb-0">¿Cuántos años conviene usar un equipo antes de cambiarlo? ¿Cuándo conviene reemplazarlo por uno nuevo?</p>
+  </div>
+</section>
+
+<div class="container py-5">
+  <div class="row g-4">
+    <div class="col-md-6">
+      <a href="{% url 'reemplazo_equipos:vida_economica' %}" class="text-decoration-none">
+        <div class="card h-100 herramienta-card herramienta-1">
+          <div class="card-body p-4">
+            <div class="herramienta-icono mb-3"><i class="bi bi-graph-down-arrow"></i></div>
+            <h4>Vida Económica del Equipo</h4>
+            <p class="text-muted">Encuentra cuántos años conviene usar un equipo nuevo antes de reemplazarlo por otro igual, usando el método del Costo Anual Equivalente (CAE) con gradiente de deterioro.</p>
+            <span class="badge bg-dark">Tanteo + tabla CAE</span>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-6">
+      <a href="{% url 'reemplazo_equipos:momento_optimo' %}" class="text-decoration-none">
+        <div class="card h-100 herramienta-card herramienta-2">
+          <div class="card-body p-4">
+            <div class="herramienta-icono mb-3"><i class="bi bi-signpost-2"></i></div>
+            <h4>Momento Óptimo de Reemplazo</h4>
+            <p class="text-muted">Compara el equipo "desafiante" (nuevo) contra el "defensor" (actual) o un proceso manual, y determina en qué año conviene reemplazar.</p>
+            <span class="badge bg-dark">Desafiante vs. Defensor</span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="alert alert-light border mt-4">
+    <i class="bi bi-mortarboard"></i> Basado en el método costo-eficiencia de
+    Gutiérrez, H. (1994) <em>Evaluación de proyectos ante certidumbre</em>, Cap. 8,
+    y en el apunte de Valenzuela, V. (2021) <em>Momento óptimo para reemplazar un equipo</em>, UNAB.
+  </div>
+</div>
+{% endblock %}

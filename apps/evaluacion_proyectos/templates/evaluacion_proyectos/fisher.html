@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Tasa de Fisher — Comparación de Proyectos — {{ SITE_NAME }}{% endblock %}
+{% block contenido %}
+<div class="container py-4">
+  <a href="{% url 'evaluacion_proyectos:inicio' %}" class="btn btn-sm btn-outline-secondary mb-3">&larr; Volver a VAN/TIR/Payback</a>
+  <h1 class="h3 mb-1"><i class="bi bi-arrows-collapse text-primary"></i> Tasa de Fisher</h1>
+  <p class="text-muted">Compara dos proyectos mutuamente excluyentes y descubre a qué tasa de descuento conviene cada uno.</p>
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      {% include "partials/_formula_card.html" with titulo="Tasa de Fisher" formula="VAN_A(r) = VAN_B(r)" explicacion="Es la tasa de descuento donde el VAN de ambos proyectos se cruza. Se calcula como la TIR del flujo diferencial (A − B). Por debajo de esa tasa conviene un proyecto; por encima, el otro." %}
+
+      <form method="post" class="card shadow-sm p-3 p-md-4 border-0">
+        {% csrf_token %}
+        {% if error_calculo %}<div class="alert alert-danger">{{ error_calculo }}</div>{% endif %}
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">{{ form.nombre_a.label }}</label>
+          {{ form.nombre_a }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">{{ form.flujos_a.label }}</label>
+          {{ form.flujos_a }}
+          {% for e in form.flujos_a.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">{{ form.nombre_b.label }}</label>
+          {{ form.nombre_b }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">{{ form.flujos_b.label }}</label>
+          {{ form.flujos_b }}
+          {% for e in form.flujos_b.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="form-text mb-3">
+          El primer valor de cada flujo es la inversión inicial (negativa); los siguientes son
+          los flujos anuales. Ambos proyectos deben tener flujos comparables en cantidad de años.
+        </div>
+        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-calculator"></i> Calcular</button>
+      </form>
+    </div>
+
+    <div class="col-lg-7">
+      {% if resultado %}
+        <div class="card text-center p-3 mb-3">
+          <div class="small text-muted">Tasa de Fisher</div>
+          <div class="fs-3 fw-bold">
+            {% if resultado.valor_pct %}{{ resultado.valor_pct|floatformat:2 }}%{% else %}No existe cruce{% endif %}
+          </div>
+        </div>
+        {% include "partials/_semaforo.html" with semaforo=resultado.semaforo texto=resultado.interpretacion %}
+
+        <div class="card p-3 mt-4 border-0 shadow-sm">
+          <h6 class="text-uppercase text-muted small fw-bold">VAN de cada proyecto según la tasa de descuento</h6>
+          {{ svg_fisher|safe }}
+        </div>
+      {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-arrow-left-circle fs-1"></i>
+          <p class="mt-2">Completa ambos flujos para ver el cruce de Fisher.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}{{ SITE_NAME }} — {{ SITE_TAGLINE }}{% endblock %}</title>
+<meta name="description" content="{% block meta_description %}{{ SITE_TAGLINE }}. Calculadoras gratuitas de VAN, TIR, WACC, flujo de caja, sensibilidad, árboles de decisión y opciones reales.{% endblock %}">
+<meta name="author" content="{{ SITE_AUTHOR }}">
+
+<!-- Bootstrap 5 (CDN) -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/evalproy.css' %}">
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="{% url 'core:inicio' %}">
+      <i class="bi bi-calculator-fill"></i> {{ SITE_NAME }}
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="{% url 'reemplazo_equipos:inicio' %}">Reemplazo</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'evaluacion_proyectos:inicio' %}">VAN/TIR</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'flujo_caja:inicio' %}">Flujo de Caja</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'tasa_descuento:inicio' %}">WACC/CAPM</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'analisis_riesgo:inicio' %}">Riesgo</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'core:acerca' %}">Acerca de</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main>
+  {% block contenido %}{% endblock %}
+</main>
+
+<footer class="bg-dark text-light-emphasis py-4 mt-5">
+  <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 text-center">
+    <span class="small">&copy; {% now "Y" %} {{ SITE_NAME }} — herramienta educativa de uso libre.</span>
+    <span class="small">
+      Creado por <strong>{{ SITE_AUTHOR }}</strong> —
+      <a class="link-light" href="{{ SITE_AUTHOR_URL }}" target="_blank" rel="noopener">{{ SITE_AUTHOR_URL }}</a>
+    </span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

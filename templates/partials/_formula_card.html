@@ -1,0 +1,8 @@
+{% comment %}
+Uso: {% include "partials/_formula_card.html" with titulo="VAN" formula="VAN = Σ Ft / (1+r)^t" explicacion="..." %}
+{% endcomment %}
+<div class="formula-card mb-4">
+  <h6 class="text-uppercase text-muted small fw-bold mb-2">{{ titulo }}</h6>
+  <div class="formula mb-2">{{ formula }}</div>
+  <p class="mb-0 small">{{ explicacion }}</p>
+</div>

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}VAN y TIR con Flujos No Periódicos — {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}Calcula el VAN.NO.PER y TIR.NO.PER de un proyecto con flujos en fechas irregulares, igual que las funciones de Excel.{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+  <a href="{% url 'evaluacion_proyectos:inicio' %}" class="btn btn-sm btn-outline-secondary mb-3">&larr; Volver a VAN/TIR/Payback</a>
+  <h1 class="h3 mb-1"><i class="bi bi-calendar3-range text-primary"></i> VAN y TIR con Flujos No Periódicos</h1>
+  <p class="text-muted">Para proyectos donde los flujos NO ocurren cada año exacto (ej. solo en los años 2, 4 y 5), o en fechas irregulares dentro del año.</p>
+  {% if error_calculo %}<div class="alert alert-danger">{{ error_calculo }}</div>{% endif %}
+
+  {% include "partials/_formula_card.html" with titulo="VAN.NO.PER (XNPV)" formula="VAN = Σ Fᵢ / (1+tasa)^((fechaᵢ − fecha₀)/365)" explicacion="A diferencia del VAN normal (que asume un flujo exactamente cada año), aquí cada flujo se descuenta según los DÍAS REALES transcurridos desde la primera fecha, usando una base de 365 días por año — igual que la función VAN.NO.PER de Excel." %}
+  {% include "partials/_formula_card.html" with titulo="TIR.NO.PER (XIRR)" formula="Tasa que hace VAN.NO.PER = 0" explicacion="Es la tasa que, aplicada con el mismo criterio de días reales, hace que el VAN.NO.PER sea exactamente cero." %}
+
+  <form method="post" class="card shadow-sm p-3 p-md-4 border-0 mb-4">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}<div class="alert alert-danger">{{ formset.non_form_errors }}</div>{% endif %}
+
+    <h6 class="fw-bold mb-2">Flujos (fecha y monto)</h6>
+    <p class="form-text mt-0">
+      El flujo con la fecha más antigua se considera la inversión inicial (normalmente negativa) y no se descuenta;
+      los demás se descuentan según los días reales transcurridos desde esa fecha.
+    </p>
+    <div class="table-responsive mb-3">
+      <table class="table table-sm align-middle">
+        <thead><tr><th style="width:55%">Fecha</th><th>Flujo ($)</th></tr></thead>
+        <tbody>
+          {% for f in formset %}
+          <tr>
+            <td>{{ f.fecha }}{% for e in f.fecha.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</td>
+            <td>{{ f.flujo }}{% for e in f.flujo.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">{{ tasa_form.tasa_descuento.label }}</label>
+        {{ tasa_form.tasa_descuento }}
+        <div class="form-text">{{ tasa_form.tasa_descuento.help_text }}</div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">{{ tasa_form.tasa_corte_tir.label }}</label>
+        {{ tasa_form.tasa_corte_tir }}
+        <div class="form-text">{{ tasa_form.tasa_corte_tir.help_text }}</div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3"><i class="bi bi-calculator"></i> Calcular VAN.NO.PER y TIR.NO.PER</button>
+  </form>
+
+  {% if resultado_van %}
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-md-3">
+        <div class="card text-center p-2"><div class="small text-muted">VAN (no per.)</div><div class="fs-5 fw-bold">${{ resultado_van.valor|floatformat:2 }}</div></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card text-center p-2"><div class="small text-muted">TIR (no per.)</div>
+          <div class="fs-5 fw-bold">{% if resultado_tir.valor_pct %}{{ resultado_tir.valor_pct|floatformat:2 }}%{% else %}N/A{% endif %}</div>
+        </div>
+      </div>
+    </div>
+
+    {% include "partials/_semaforo.html" with semaforo=resultado_van.semaforo texto=resultado_van.interpretacion %}
+    <div class="mt-2">{% include "partials/_semaforo.html" with semaforo=resultado_tir.semaforo texto=resultado_tir.interpretacion %}</div>
+
+    <div class="card p-3 mt-4 border-0 shadow-sm">
+      <h6 class="text-uppercase text-muted small fw-bold">Flujo de caja en el calendario real</h6>
+      {{ svg_flujo|safe }}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

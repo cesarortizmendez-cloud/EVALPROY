@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Análisis de Riesgo — {{ SITE_NAME }}{% endblock %}
+{% block contenido %}
+<div class="container py-4">
+  <h1 class="h3 mb-1"><i class="bi bi-shuffle text-primary"></i> Análisis de Riesgo</h1>
+  <p class="text-muted">El riesgo propio de un proyecto se mide con 4 herramientas complementarias. Elige una para empezar.</p>
+  <div class="row g-4 mt-2">
+    <div class="col-md-6">
+      <a href="{% url 'analisis_riesgo:sensibilidad' %}" class="text-decoration-none">
+        <div class="card h-100 p-3 modulo-card tema-5">
+          <h5><i class="bi bi-sliders"></i> Análisis de Sensibilidad</h5>
+          <p class="text-muted mb-0 small">¿Qué tan sensible es el VAN ante cambios en una variable clave?</p>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-6">
+      <a href="{% url 'analisis_riesgo:escenarios' %}" class="text-decoration-none">
+        <div class="card h-100 p-3 modulo-card tema-5">
+          <h5><i class="bi bi-signpost-split"></i> Análisis de Escenarios</h5>
+          <p class="text-muted mb-0 small">Compara escenarios pesimista, base y optimista con sus probabilidades.</p>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-6">
+      <a href="{% url 'analisis_riesgo:arbol_decision' %}" class="text-decoration-none">
+        <div class="card h-100 p-3 modulo-card tema-5">
+          <h5><i class="bi bi-diagram-3"></i> Árbol de Decisión</h5>
+          <p class="text-muted mb-0 small">Decide bajo incertidumbre con decisiones secuenciales y nodos de azar.</p>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-6">
+      <a href="{% url 'analisis_riesgo:opciones_reales' %}" class="text-decoration-none">
+        <div class="card h-100 p-3 modulo-card tema-5">
+          <h5><i class="bi bi-hourglass-split"></i> Opciones Reales</h5>
+          <p class="text-muted mb-0 small">Valora la flexibilidad de esperar o expandir un proyecto (Black-Scholes).</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

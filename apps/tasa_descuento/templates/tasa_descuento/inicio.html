@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}WACC y CAPM — Tasa de Descuento — {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}Calculadora online de CAPM, Beta apalancado/desapalancado y WACC para determinar la tasa de descuento de un proyecto.{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+  <h1 class="h3 mb-1"><i class="bi bi-percent text-primary"></i> Tasa de Descuento</h1>
+  <p class="text-muted">Determina la tasa de corte de tu proyecto: costo del patrimonio, ajuste de Beta y WACC.</p>
+  {% if error_calculo %}<div class="alert alert-danger">{{ error_calculo }}</div>{% endif %}
+
+  <div class="row g-4">
+    <!-- CAPM -->
+    <div class="col-lg-4">
+      {% include "partials/_formula_card.html" with titulo="CAPM" formula="Ke = Rf + β × (Rm − Rf)" explicacion="El costo del patrimonio es la tasa libre de riesgo más un premio proporcional al riesgo sistemático (Beta) del proyecto." %}
+      <form method="post" class="card p-3 border-0 shadow-sm">
+        {% csrf_token %}
+        <label class="form-label small">{{ capm_form.tasa_libre_riesgo.label }}</label>
+        {{ capm_form.tasa_libre_riesgo }}
+        <div class="form-text mb-2">{{ capm_form.tasa_libre_riesgo.help_text }}</div>
+        <label class="form-label small">{{ capm_form.beta.label }}</label>
+        {{ capm_form.beta }}
+        <div class="form-text mb-2">{{ capm_form.beta.help_text }}</div>
+        <label class="form-label small">{{ capm_form.premio_riesgo_mercado.label }}</label>
+        {{ capm_form.premio_riesgo_mercado }}
+        <div class="form-text mb-2">{{ capm_form.premio_riesgo_mercado.help_text }}</div>
+        <button type="submit" name="calcular_capm" class="btn btn-primary w-100 mt-2">Calcular Ke</button>
+      </form>
+      {% if capm_resultado %}
+        <div class="card text-center p-2 mt-3"><div class="small text-muted">Ke</div><div class="fs-4 fw-bold">{{ capm_resultado.ke_pct|floatformat:2 }}%</div></div>
+        {% include "partials/_semaforo.html" with semaforo="neutro" texto=capm_resultado.interpretacion %}
+      {% endif %}
+    </div>
+
+    <!-- Beta -->
+    <div class="col-lg-4">
+      {% include "partials/_formula_card.html" with titulo="Ajuste de Beta (Hamada)" formula="β_apalancado = β_desapalancado × [1 + (1−t)(D/E)]" explicacion="El Beta observado de una empresa incluye el efecto de su deuda. Para usar el Beta de otra empresa/industria en tu proyecto, primero se 'desapalanca' (quita el efecto de su deuda) y luego se 'apalanca' con la estructura de deuda de tu propio proyecto." %}
+      <form method="post" class="card p-3 border-0 shadow-sm">
+        {% csrf_token %}
+        <label class="form-label small">Acción</label>
+        {{ beta_form.accion }}
+        <label class="form-label small mt-2">{{ beta_form.beta_dado.label }}</label>
+        {{ beta_form.beta_dado }}
+        <div class="form-text mb-2">{{ beta_form.beta_dado.help_text }}</div>
+        <div class="row g-2">
+          <div class="col-6"><label class="form-label small">{{ beta_form.deuda.label }}</label>{{ beta_form.deuda }}</div>
+          <div class="col-6"><label class="form-label small">{{ beta_form.patrimonio.label }}</label>{{ beta_form.patrimonio }}</div>
+        </div>
+        <label class="form-label small mt-2">{{ beta_form.tasa_impuesto.label }}</label>
+        {{ beta_form.tasa_impuesto }}
+        <button type="submit" name="calcular_beta" class="btn btn-primary w-100 mt-2">Calcular Beta</button>
+      </form>
+      {% if beta_resultado %}
+        <div class="card text-center p-2 mt-3"><div class="small text-muted">{{ beta_resultado.etiqueta }}</div><div class="fs-4 fw-bold">{{ beta_resultado.valor|floatformat:3 }}</div></div>
+      {% endif %}
+    </div>
+
+    <!-- WACC -->
+    <div class="col-lg-4">
+      {% include "partials/_formula_card.html" with titulo="WACC" formula="WACC = (E/V)Ke + (D/V)Kd(1−t)" explicacion="Promedio ponderado del costo del patrimonio y la deuda, según su peso en el valor total de la empresa (V = E + D). Es la tasa que normalmente se usa para descontar los flujos del proyecto en el cálculo del VAN." %}
+      <form method="post" class="card p-3 border-0 shadow-sm">
+        {% csrf_token %}
+        <label class="form-label small">{{ wacc_form.ke.label }}</label>
+        {{ wacc_form.ke }}
+        <label class="form-label small mt-2">{{ wacc_form.kd.label }}</label>
+        {{ wacc_form.kd }}
+        <div class="row g-2 mt-1">
+          <div class="col-6"><label class="form-label small">{{ wacc_form.valor_patrimonio.label }}</label>{{ wacc_form.valor_patrimonio }}</div>
+          <div class="col-6"><label class="form-label small">{{ wacc_form.valor_deuda.label }}</label>{{ wacc_form.valor_deuda }}</div>
+        </div>
+        <label class="form-label small mt-2">{{ wacc_form.tasa_impuesto.label }}</label>
+        {{ wacc_form.tasa_impuesto }}
+        <div class="form-text mb-2">{{ wacc_form.tasa_impuesto.help_text }}</div>
+        <button type="submit" name="calcular_wacc" class="btn btn-primary w-100 mt-2">Calcular WACC</button>
+      </form>
+      {% if wacc_resultado %}
+        <div class="card text-center p-2 mt-3"><div class="small text-muted">WACC</div><div class="fs-4 fw-bold">{{ wacc_resultado.wacc_pct|floatformat:2 }}%</div></div>
+        {% include "partials/_semaforo.html" with semaforo="neutro" texto=wacc_resultado.interpretacion %}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="alert alert-info mt-4">
+    <i class="bi bi-lightbulb"></i> Tip: calcula primero el Ke con CAPM, luego úsalo como input en el
+    bloque de WACC junto al Kd y la estructura de capital de tu proyecto.
+  </div>
+</div>
+{% endblock %}

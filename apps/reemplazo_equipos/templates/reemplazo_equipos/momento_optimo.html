@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Momento Óptimo de Reemplazo — {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}Determina cuándo conviene reemplazar un equipo o proceso manual por uno nuevo, comparando el Costo Anual Equivalente de ambas alternativas.{% endblock %}
+
+{% block contenido %}
+<section class="reemplazo-hero py-4">
+  <div class="container text-white">
+    <a href="{% url 'reemplazo_equipos:inicio' %}" class="text-white-50 small"><i class="bi bi-arrow-left"></i> Reemplazo de Equipos</a>
+    <h1 class="h3 mt-2 mb-0"><i class="bi bi-signpost-2"></i> Momento Óptimo de Reemplazo</h1>
+  </div>
+</section>
+
+<div class="container py-4">
+  {% if error_calculo %}<div class="alert alert-danger">{{ error_calculo }}</div>{% endif %}
+
+  {% include "partials/_formula_card.html" with titulo="Fórmula" formula="n* ≥ ln( CAE_desafiante / CAE_actual ) / ln( 1 + tasa de incremento )" explicacion="El equipo desafiante (nuevo) tiene un CAE que se asume constante. La alternativa actual (defensora o proceso manual) tiene un CAE que crece cada año. n* es el primer año en que el costo de seguir con la alternativa actual alcanza o supera al del desafiante." %}
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <form method="post" class="card shadow-sm p-3 p-md-4 border-0">
+        {% csrf_token %}
+        <h6 class="text-info fw-bold"><i class="bi bi-hourglass"></i> Alternativa actual (la que crece)</h6>
+        <label class="form-label small fw-semibold">{{ form.nombre_actual.label }}</label>
+        {{ form.nombre_actual }}
+        <label class="form-label small fw-semibold mt-2">{{ form.cae_actual.label }}</label>
+        {{ form.cae_actual }}
+        <div class="form-text mb-2">{{ form.cae_actual.help_text }}</div>
+        <label class="form-label small fw-semibold">{{ form.tasa_incremento.label }}</label>
+        {{ form.tasa_incremento }}
+        <div class="form-text mb-3">{{ form.tasa_incremento.help_text }}</div>
+
+        <hr>
+        <h6 class="text-danger fw-bold"><i class="bi bi-rocket-takeoff"></i> Equipo/proceso desafiante</h6>
+        <label class="form-label small fw-semibold">{{ form.nombre_desafiante.label }}</label>
+        {{ form.nombre_desafiante }}
+        <label class="form-label small fw-semibold mt-2">{{ form.cae_desafiante.label }}</label>
+        {{ form.cae_desafiante }}
+        <div class="form-text mb-2">{{ form.cae_desafiante.help_text }}</div>
+
+        <button type="submit" class="btn btn-info w-100 mt-3 text-white"><i class="bi bi-calculator"></i> Calcular momento óptimo</button>
+      </form>
+    </div>
+
+    <div class="col-lg-7">
+      {% if resultado %}
+        <div class="card text-center p-3 mb-3 border-info">
+          <div class="small text-muted">Momento óptimo de reemplazo</div>
+          <div class="fs-2 fw-bold text-info">
+            {% if resultado.n_optimo > 0 %}{{ resultado.n_optimo|floatformat:2 }} años{% else %}Ahora{% endif %}
+          </div>
+        </div>
+        {% include "partials/_semaforo.html" with semaforo="positivo" texto=resultado.interpretacion %}
+
+        <div class="card p-3 mt-4 border-0 shadow-sm">
+          <h6 class="text-uppercase text-muted small fw-bold">Evolución del CAE de cada alternativa</h6>
+          {{ svg_momento_optimo|safe }}
+        </div>
+      {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-arrow-left-circle fs-1"></i>
+          <p class="mt-2">Completa el formulario para ver cuándo conviene reemplazar.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

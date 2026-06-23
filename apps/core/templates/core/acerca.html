@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Acerca de — {{ SITE_NAME }}{% endblock %}
+{% block contenido %}
+<div class="container py-5" style="max-width: 760px;">
+  <h1 class="mb-4">Acerca de {{ SITE_NAME }}</h1>
+  <p>{{ SITE_NAME }} es una plataforma web abierta y gratuita para aprender y aplicar evaluación
+  de proyectos de inversión: reemplazo de equipos, VAN, TIR, Payback, construcción de flujos
+  de caja, tasa de descuento (WACC/CAPM) y análisis de riesgo (sensibilidad, escenarios,
+  árboles de decisión y opciones reales).</p>
+  <p>No requiere crear una cuenta ni almacena tus datos en una base de datos: cada cálculo se
+  realiza en el momento, directamente en el servidor, y solo se mantiene temporalmente en tu
+  sesión de navegador mientras trabajas en un módulo de varios pasos.</p>
+  <hr class="my-4">
+  <h2 class="h4">Autoría</h2>
+  <p>Este proyecto fue creado por <strong>{{ SITE_AUTHOR }}</strong>.</p>
+  <p><a href="{{ SITE_AUTHOR_URL }}" target="_blank" rel="noopener" class="btn btn-outline-dark">
+    <i class="bi bi-box-arrow-up-right"></i> Visitar sitio web / CV
+  </a></p>
+</div>
+{% endblock %}

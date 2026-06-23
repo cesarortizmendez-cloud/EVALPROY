@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Opciones Reales — {{ SITE_NAME }}{% endblock %}
+{% block contenido %}
+<div class="container py-4">
+  <a href="{% url 'analisis_riesgo:inicio' %}" class="btn btn-sm btn-outline-secondary mb-3">&larr; Volver a Análisis de Riesgo</a>
+  <h1 class="h3 mb-1"><i class="bi bi-hourglass-split text-primary"></i> Opciones Reales</h1>
+  {% if error_calculo %}<div class="alert alert-danger">{{ error_calculo }}</div>{% endif %}
+
+  {% include "partials/_formula_card.html" with titulo="Black-Scholes para opciones reales" formula="C = S·N(d1) − K·e^(−rT)·N(d2)" explicacion="Valora la flexibilidad de esperar o expandir un proyecto en vez de decidir todo hoy de forma irreversible. S es el valor presente del proyecto, K la inversión requerida, y la volatilidad/tiempo reflejan cuánto vale postergar la decisión." %}
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <form method="post" class="card shadow-sm p-3 border-0">
+        {% csrf_token %}
+        <label class="form-label small fw-semibold">{{ form.valor_activo.label }}</label>
+        {{ form.valor_activo }}
+        <div class="form-text">{{ form.valor_activo.help_text }}</div>
+        <label class="form-label small fw-semibold mt-2">{{ form.precio_ejercicio.label }}</label>
+        {{ form.precio_ejercicio }}
+        <div class="form-text">{{ form.precio_ejercicio.help_text }}</div>
+        <label class="form-label small fw-semibold mt-2">{{ form.tasa_libre_riesgo.label }}</label>
+        {{ form.tasa_libre_riesgo }}
+        <label class="form-label small fw-semibold mt-2">{{ form.volatilidad.label }}</label>
+        {{ form.volatilidad }}
+        <div class="form-text">{{ form.volatilidad.help_text }}</div>
+        <label class="form-label small fw-semibold mt-2">{{ form.tiempo_anos.label }}</label>
+        {{ form.tiempo_anos }}
+        <div class="form-text">{{ form.tiempo_anos.help_text }}</div>
+        <button type="submit" class="btn btn-primary w-100 mt-3">Valorar la opción</button>
+      </form>
+    </div>
+    <div class="col-lg-7">
+      {% if resultado %}
+        <div class="card text-center p-3 mb-3">
+          <div class="small text-muted">Valor de la opción real</div>
+          <div class="fs-3 fw-bold">${{ resultado.valor_opcion|floatformat:0 }}</div>
+        </div>
+        {% include "partials/_semaforo.html" with semaforo="neutro" texto=resultado.interpretacion %}
+        <div class="alert alert-info mt-3">
+          <strong>VAN expandido</strong> = VAN tradicional (estático) + valor de la opción real
+          (${{ resultado.valor_opcion|floatformat:0 }}). Un proyecto puede verse poco atractivo
+          con el VAN tradicional y, aun así, convenir mantenerlo abierto por el valor de su flexibilidad.
+        </div>
+      {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-arrow-left-circle fs-1"></i>
+          <p class="mt-2">Completa el formulario para valorar la opción real.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Análisis de Escenarios — {{ SITE_NAME }}{% endblock %}
+{% block contenido %}
+<div class="container py-4">
+  <a href="{% url 'analisis_riesgo:inicio' %}" class="btn btn-sm btn-outline-secondary mb-3">&larr; Volver a Análisis de Riesgo</a>
+  <h1 class="h3 mb-1"><i class="bi bi-signpost-split text-primary"></i> Análisis de Escenarios</h1>
+  {% if error_calculo %}<div class="alert alert-danger">{{ error_calculo }}</div>{% endif %}
+
+  {% include "partials/_formula_card.html" with titulo="VAN esperado y riesgo" formula="E[VAN] = Σ pᵢ × VANᵢ      σ = √(Σ pᵢ(VANᵢ − E[VAN])²)" explicacion="Cada escenario (pesimista, base, optimista, u otros) tiene una probabilidad de ocurrir. El VAN esperado es el promedio ponderado; la desviación estándar mide cuánto se dispersan los resultados posibles, es decir, el riesgo." %}
+
+  <form method="post" class="card shadow-sm p-3 p-md-4 border-0 mb-4">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <div class="row g-3">
+      {% for f in formset %}
+        <div class="col-md-4">
+          <div class="border rounded-3 p-2">
+            <label class="form-label small">Nombre del escenario</label>
+            {{ f.nombre }}
+            <label class="form-label small mt-2">Probabilidad (0 a 1)</label>
+            {{ f.probabilidad }}
+            <label class="form-label small mt-2">Flujos (inversión, año1, año2, …)</label>
+            {{ f.flujos }}
+            {% for e in f.flujos.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">{{ tasa_form.tasa_descuento.label }}</label>
+        {{ tasa_form.tasa_descuento }}
+      </div>
+    </div>
+    <div class="form-text mt-2">Las probabilidades de todos los escenarios deben sumar 1.0 (ej. 0.25 + 0.50 + 0.25).</div>
+    <button type="submit" class="btn btn-primary mt-3">Calcular VAN esperado</button>
+  </form>
+
+  {% if resultado %}
+    <div class="row g-2 mb-3">
+      <div class="col-6 col-md-3"><div class="card text-center p-2"><div class="small text-muted">VAN esperado</div><div class="fw-bold">${{ resultado.van_esperado|floatformat:0 }}</div></div></div>
+      <div class="col-6 col-md-3"><div class="card text-center p-2"><div class="small text-muted">Desv. estándar</div><div class="fw-bold">${{ resultado.desviacion_estandar|floatformat:0 }}</div></div></div>
+    </div>
+    <div class="card p-3 border-0 shadow-sm mb-3">{{ svg_escenarios|safe }}</div>
+    {% include "partials/_semaforo.html" with semaforo="neutro" texto=resultado.interpretacion %}
+  {% endif %}
+</div>
+{% endblock %}

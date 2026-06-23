@@ -1,0 +1,11 @@
+{% comment %}
+Uso: {% include "partials/_semaforo.html" with semaforo=resultado.semaforo texto=resultado.interpretacion %}
+{% endcomment %}
+<div class="semaforo-{{ semaforo|default:'neutro' }} mt-3">
+  <div class="d-flex align-items-start gap-2">
+    {% if semaforo == "positivo" %}<i class="bi bi-check-circle-fill text-success fs-5"></i>
+    {% elif semaforo == "negativo" %}<i class="bi bi-x-circle-fill text-danger fs-5"></i>
+    {% else %}<i class="bi bi-info-circle-fill text-secondary fs-5"></i>{% endif %}
+    <p class="mb-0">{{ texto }}</p>
+  </div>
+</div>
