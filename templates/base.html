@@ -8,6 +8,15 @@
 <meta name="description" content="{% block meta_description %}{{ SITE_TAGLINE }}. Calculadoras gratuitas de VAN, TIR, WACC, flujo de caja, sensibilidad, árboles de decisión y opciones reales.{% endblock %}">
 <meta name="author" content="{{ SITE_AUTHOR }}">
 
+<meta name="theme-color" content="#1e3a8a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="EvalProy">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="{% static 'icons/apple-touch-icon.png' %}">
+<link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/favicon-32.png' %}">
+
 <!-- Bootstrap 5 (CDN) -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -41,6 +50,19 @@
   {% block contenido %}{% endblock %}
 </main>
 
+<div id="pwaInstallCard" class="pwa-install-card" hidden aria-live="polite">
+  <div class="pwa-install-icon" aria-hidden="true">📲</div>
+  <div class="pwa-install-body">
+    <strong>Instala EvalProy en tu equipo</strong>
+    <p id="pwaGeneralHint" class="mb-2">Accede a la calculadora como aplicación desde Android, Windows o tu computador.</p>
+    <p id="pwaIosHint" class="mb-2" hidden>En iPhone/iPad: abre esta página en Safari, toca <strong>Compartir</strong> y luego <strong>Agregar a pantalla de inicio</strong>.</p>
+    <div class="pwa-install-actions">
+      <button id="pwaInstallBtn" type="button" class="btn btn-primary btn-sm" hidden>Instalar en mi equipo</button>
+      <button id="pwaDismissBtn" type="button" class="btn btn-outline-secondary btn-sm">Ahora no</button>
+    </div>
+  </div>
+</div>
+
 <footer class="bg-dark text-light-emphasis py-4 mt-5">
   <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 text-center">
     <span class="small">&copy; {% now "Y" %} {{ SITE_NAME }} — herramienta educativa de uso libre.</span>
@@ -52,6 +74,7 @@
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/pwa-install.js' %}"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

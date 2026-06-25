@@ -116,3 +116,16 @@ evalproy/
 - [ ] Formularios e interfaz de cada módulo conectados al motor (en progreso,
       módulo por módulo).
 - [ ] Despliegue inicial en Vercel.
+
+## PWA instalable
+
+El proyecto incluye soporte PWA para que EvalProy pueda instalarse como aplicación en Android, Windows, macOS, iPhone y iPad.
+
+Rutas principales:
+
+- `/manifest.json`
+- `/service-worker.js`
+- `/static/icons/icon-192.png`
+- `/static/icons/icon-512.png`
+
+En Android y Windows el botón **Instalar en mi equipo** dispara la ventana nativa de instalación. En iPhone/iPad se muestra una guía para usar **Compartir → Agregar a pantalla de inicio** desde Safari.
